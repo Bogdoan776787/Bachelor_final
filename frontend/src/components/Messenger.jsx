@@ -32,6 +32,7 @@ const Messenger = () => {
  const [socketMessage, setSocketMessage] = useState('');
  const [typingMessage, setTypingMessage] = useState('');
 
+ 
  useEffect(() => {
     socket.current = io('ws://localhost:8000');
     socket.current.on('getMessage',(data) => {

@@ -11,7 +11,7 @@ const Login = () => {
 
      const alert = useAlert();
 
-     const {loading,authenticate,error,successMessage,myInfo} = useSelector(state=>state.auth);
+     const {authenticate,error,successMessage} = useSelector(state=>state.auth);
 
 
      const dispatch = useDispatch();
