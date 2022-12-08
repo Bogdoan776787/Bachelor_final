@@ -7,6 +7,8 @@ import {Pose} from "@mediapipe/pose"
 import {Hands} from "@mediapipe/hands"
 import {Camera} from "@mediapipe/camera_utils"
 
+import {getTranslatedWords} from "./../store/actions/videoAction"
+
 import {
   Container,
   Video,
@@ -130,7 +132,8 @@ function VideoCall() {
               {
   
                 let landmarks = {"POSE_LANDMARKS":poseLandmarks,"HANDS_LANDMARKS":handsLandmarks,"MULTI_HANDEDNESS":multiHandedness}
-                console.log(landmarks)
+                let word = getTranslatedWords(landmarks);
+                
                 handsLandmarks = []
                 multiHandedness = []
                 poseLandmarks=[]

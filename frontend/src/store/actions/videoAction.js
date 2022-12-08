@@ -1,9 +1,9 @@
 import axios from 'axios';
 import {WORD_TRANSLATED_SUCCESS} from "../types/videoType";
 
-export const getFriends = () => async(dispatch) => {
+export const getTranslatedWords = (data) => async(dispatch) => {
      try{
-          const response = await axios.get('localhost:5000/sign-language-translation');
+          const response = await axios.post('localhost:5000/sign-language-translation',data);
            dispatch({
                 type: WORD_TRANSLATED_SUCCESS,
                 payload : {
