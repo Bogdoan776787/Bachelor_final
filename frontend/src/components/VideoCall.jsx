@@ -2,6 +2,11 @@ import React, { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
 import Peer from "simple-peer";
 import { FiPhoneCall, FiPhoneOff,FiCheck } from "react-icons/fi";
+
+import {Pose} from "@mediapipe/pose"
+import {Hands} from "@mediapipe/hands"
+import {Camera} from "@mediapipe/camera_utils"
+
 import {
   Container,
   Video,
@@ -14,6 +19,13 @@ import {
 } from "../sass/components/videoCall";
 import SpeechConvert from "./SpeechConvert";
 function VideoCall() {
+  let poseLandmarks = []
+  let handsLandmarks = []
+  let multiHandedness = []
+  let sendData = false
+
+
+  const [signTranslation,setSignTranslation] = useState(false)
   const [yourID, setYourID] = useState("");
   const [users, setUsers] = useState({});
   const [stream, setStream] = useState();
@@ -26,14 +38,112 @@ function VideoCall() {
   const partnerVideo = useRef();
   const socket = useRef();
 
+
+  const onPoseResults = (pose) =>{
+  
+    if (!pose.poseWorldLandmarks || multiHandedness.length === 0) {
+      poseLandmarks=[]
+      return;
+    }
+    if(sendData)
+    {
+      return false;
+    }
+  
+    poseLandmarks.push(pose.poseWorldLandmarks.slice(11,23))
+    }
+  
+    const onHandsResults = (hands) =>
+    {
+      console.log(multiHandedness.length)
+      console.log(!hands.multiHandedness.length && multiHandedness.length>40)
+  
+      if(!hands.multiHandedness.length && multiHandedness.length<40)
+      { 
+        handsLandmarks = []
+        multiHandedness = []
+        return;
+      }
+      if(!hands.multiHandedness.length && multiHandedness.length>40)
+      {
+        sendData=true
+        return;
+      }
+      handsLandmarks.push(hands.multiHandWorldLandmarks)
+      multiHandedness.push(hands.multiHandedness)
+    }
+
   useEffect(() => {
+    const pose = new Pose({locateFile: (file) => {
+      return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+    }});
+
+    pose.setOptions({
+      selfieMode: true,
+      modelComplexity: 0,
+      smoothLandmarks: true,
+      enableSegmentation: false,
+      smoothSegmentation: true,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+      });
+
+    pose.onResults(onPoseResults);
+
+
+    const hands = new Hands({locateFile: (file) => {
+      return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+    }});
+    hands.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
+    });
+    hands.onResults(onHandsResults);
+
+
+    const video_constranits = {
+      frameRate: {exact:30},
+    };
+
     socket.current = io.connect("ws://localhost:8001");
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         setStream(stream);
+        const track = stream.getVideoTracks()[0];
+        track.applyConstraints(video_constranits).then(()=>
+        {
+          console.log("FRAME RATE IS 30 frames per second")
+        }).catch(()=>
+        {
+          console.log("FRAME RATE COULD NOT BE SET TO 30 frames per second")
+        })
         if (userVideo.current) {
           userVideo.current.srcObject = stream;
+          const camera = new Camera(userVideo.current, {
+            onFrame: async () => {
+              await hands.send({image: userVideo.current});
+              await pose.send({image: userVideo.current});
+              if(multiHandedness.length === 60 || sendData)
+              {
+  
+                let landmarks = {"POSE_LANDMARKS":poseLandmarks,"HANDS_LANDMARKS":handsLandmarks,"MULTI_HANDEDNESS":multiHandedness}
+                console.log(landmarks)
+                handsLandmarks = []
+                multiHandedness = []
+                poseLandmarks=[]
+  
+                sendData=false
+  
+  
+              }
+            },
+            width: 1024,
+            height: 800
+          });
+          camera.start();
         }
       });
 
