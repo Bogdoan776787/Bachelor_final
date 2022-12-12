@@ -57,16 +57,14 @@ function VideoCall() {
   
     const onHandsResults = (hands) =>
     {
-      console.log(multiHandedness.length)
-      console.log(!hands.multiHandedness.length && multiHandedness.length>40)
   
-      if(!hands.multiHandedness.length && multiHandedness.length<40)
+      if(!hands.multiHandedness.length && multiHandedness.length<25)
       { 
         handsLandmarks = []
         multiHandedness = []
         return;
       }
-      if(!hands.multiHandedness.length && multiHandedness.length>40)
+      if(!hands.multiHandedness.length && multiHandedness.length>25)
       {
         sendData=true
         return;
@@ -130,10 +128,12 @@ function VideoCall() {
               await pose.send({image: userVideo.current});
               if(multiHandedness.length === 60 || sendData)
               {
-  
-                let landmarks = {"POSE_LANDMARKS":poseLandmarks,"HANDS_LANDMARKS":handsLandmarks,"MULTI_HANDEDNESS":multiHandedness}
-                let word = getTranslatedWords(landmarks);
                 
+                let landmarks = {"POSE_LANDMARKS":poseLandmarks,"HANDS_LANDMARKS":handsLandmarks,"MULTI_HANDEDNESS":multiHandedness}
+                console.log("GET WORD")
+                getTranslatedWords(landmarks);
+
+                // console.log(word)
                 handsLandmarks = []
                 multiHandedness = []
                 poseLandmarks=[]
