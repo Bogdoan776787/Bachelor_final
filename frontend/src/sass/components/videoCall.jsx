@@ -98,11 +98,13 @@ padding:15px ;
   width:40%;
   height:48vh;
   background-color: #3C153B;
+  
   button{
     margin-top:10px;
     height:5vh;
     padding:5px;
     border-radius:50px;
+    background-color:${props => props.enable ? "red" : "green"};
   }
   p{
     margin-bottom:5px ;
