@@ -5,8 +5,8 @@ export const getTranslatedWords =  async (data) => {
      try{
           console.log("GET TRANSLATED WORD")
           const response = await axios.post('http://localhost:80/sign-language-translation',data);
-          console.log("RESPONSE IS : ")
           console.log(response)
+          return response.data
           //  dispatch({
           //       type: WORD_TRANSLATED_SUCCESS,
           //       payload : {

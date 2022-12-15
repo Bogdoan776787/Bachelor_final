@@ -25,7 +25,7 @@ function VideoCall() {
   let handsLandmarks = []
   let multiHandedness = []
   let sendData = false
-
+  const [SignLangaugeWord,SetSignLangaugeWord] = useState("")
 
   const [signTranslation,setSignTranslation] = useState(false)
   const [yourID, setYourID] = useState("");
@@ -126,23 +126,28 @@ function VideoCall() {
             onFrame: async () => {
               await hands.send({image: userVideo.current});
               await pose.send({image: userVideo.current});
-              if(multiHandedness.length === 60 || sendData)
+              if(multiHandedness.length === 60 || sendData )
               {
                 
                 let landmarks = {"POSE_LANDMARKS":poseLandmarks,"HANDS_LANDMARKS":handsLandmarks,"MULTI_HANDEDNESS":multiHandedness}
                 console.log("GET WORD")
-                getTranslatedWords(landmarks);
+
+                  getTranslatedWords(landmarks).then(res=>
+                    {
+                      SetSignLangaugeWord(res.predicted_word)
+                    })
+                  
 
                 // console.log(word)
                 handsLandmarks = []
                 multiHandedness = []
                 poseLandmarks=[]
-  
+                
                 sendData=false
   
   
               }
-            },
+          },
             width: 1024,
             height: 800
           });
@@ -274,9 +279,10 @@ function VideoCall() {
       <SpeechContainer>
         <SpeechConvert />
       </SpeechContainer>
-      <SignTranslation>
+      <SignTranslation enable = {signTranslation} onClick={() =>setSignTranslation(!signTranslation)}>
         <p>Sign Language</p>
         <button>Set Sign Translation</button>
+        <p>{SignLangaugeWord}</p>
       </SignTranslation>
     </Container>
   );
